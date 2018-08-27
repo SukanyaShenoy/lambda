@@ -1,0 +1,926 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters": {
+
+    "InstanceType" : {
+      "Description" : "EC2 instance type",
+      "Type" : "String",
+      "Default" : "t2.small",
+      "AllowedValues" : [ "t1.micro","t2.xlarge","t2.nano", "t2.micro", "t2.2xlarge", "t2.small", "t2.medium", "t2.large", "m1.small",
+        "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.2xlarge", "m2.4xlarge", "m3.medium", "m3.large",
+        "m3.xlarge", "m3.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "c1.medium",
+        "c1.xlarge", "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "c4.large", "c4.xlarge",
+        "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "g2.2xlarge", "g2.8xlarge", "r3.large", "r3.xlarge", "r3.2xlarge",
+        "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge",
+        "d2.4xlarge", "d2.8xlarge", "hi1.4xlarge", "hs1.8xlarge", "cr1.8xlarge", "cc2.8xlarge", "cg1.4xlarge"],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "CrowdStrikeCID" : {
+      "Type" : "String",
+      "Default": ""
+    },
+
+    "KeyName": {
+      "Description" : "Name of an existing EC2 key pair to enable SSH access to the instances",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair.",
+      "Default": ""
+    },
+
+    "AmiId" : {
+      "Type" : "String",
+      "Description" : "Optional AMI for instance",
+      "Default" : ""
+    },
+
+    "OSName": {
+      "Type" : "String",
+      "Description" : "Operating System",
+      "Default" : "WINDOWS-2K12-R2",
+      "AllowedValues": ["WINDOWS-2K12-R2", "WINDOWS-2K16", "Custom.AMI"]
+    },
+
+    "VPCId" : {
+      "Type" : "AWS::EC2::VPC::Id",
+      "Default": ""
+    },
+
+    "SubnetId" : {
+      "Type" : "AWS::EC2::Subnet::Id",
+      "Description" : "Subnet for instance deployment",
+      "Default": ""
+    },
+
+    "PublicIPOption" : {
+      "Type" : "String",
+      "Default" : "Auto-Assign",
+      "AllowedValues" : ["None", "Auto-Assign", "Elastic-IP"]
+    },
+
+    "TerminationProtection" : {
+      "Type" : "String",
+      "Default" : "False",
+      "AllowedValues" : ["True", "False"]
+    },
+
+    "SecurityGroups" : {
+      "Description": "Security Groups applied to Instance",
+      "Type": "List<AWS::EC2::SecurityGroup::Id>",
+      "Default" : ""
+    },
+
+    "rootSize" : {
+      "Type" : "Number",
+      "MinValue" : "1",
+      "MaxValue" : "16384",
+      "Default" : "40"
+    },
+
+    "rootIOPS" : {
+      "Description" : "IOPS for Provisioned.IOPS.SSD Volume Type",
+      "Type" : "Number",
+      "MinValue" : "100",
+      "MaxValue" : "20000",
+      "Default" : "1000"
+    },
+
+    "rootDeleteOnTermination": {
+      "Type" : "String",
+      "Default" : "True",
+      "AllowedValues" : ["True", "False"]
+    },
+
+    "rootVolumeType" : {
+      "Type" : "String",
+      "Default" : "General.Purpose.SSD",
+      "AllowedValues" : ["Magnetic", "Provisioned.IOPS.SSD", "General.Purpose.SSD", "Throughput.Optimized.HDD", "Cold.HDD"]
+    },
+
+
+    "v1Size" : {
+      "Type" : "Number",
+      "MinValue" : "1",
+      "MaxValue" : "16384",
+      "Default" : "40"
+    },
+
+    "v1IOPS" : {
+      "Description" : "IOPS for Provisioned.IOPS.SSD Volume Type",
+      "Type" : "Number",
+      "MinValue" : "100",
+      "MaxValue" : "20000",
+      "Default" : "1000"
+    },
+
+    "v1VolumeType" : {
+      "Type" : "String",
+      "Default" : "None",
+      "AllowedValues" : ["None", "Magnetic", "Provisioned.IOPS.SSD", "General.Purpose.SSD", "Throughput.Optimized.HDD", "Cold.HDD"]
+    },
+
+    "v1Encrypted": {
+      "Type" : "String",
+      "Default" : "False",
+      "AllowedValues" : ["True", "False"]
+    },
+
+    "v1DeleteOnTermination": {
+      "Type" : "String",
+      "Default" : "Delete",
+      "AllowedValues" : ["Delete", "Retain", "Snapshot"]
+    },
+
+    "v1Device" : {
+      "Type" : "String",
+      "Default" : "/dev/xvdb"
+    },
+
+    "v2Size" : {
+      "Type" : "Number",
+      "MinValue" : "1",
+      "MaxValue" : "16384",
+      "Default" : "40"
+    },
+
+    "v2IOPS" : {
+      "Description" : "IOPS for Provisioned.IOPS.SSD Volume Type",
+      "Type" : "Number",
+      "MinValue" : "100",
+      "MaxValue" : "20000",
+      "Default" : "1000"
+    },
+
+    "v2VolumeType" : {
+      "Type" : "String",
+      "Default" : "None",
+      "AllowedValues" : ["None", "Magnetic", "Provisioned.IOPS.SSD", "General.Purpose.SSD", "Throughput.Optimized.HDD", "Cold.HDD"]
+    },
+
+    "v2Encrypted": {
+      "Type" : "String",
+      "Default" : "False",
+      "AllowedValues" : ["True", "False"]
+    },
+
+    "v2DeleteOnTermination": {
+      "Type" : "String",
+      "Default" : "Delete",
+      "AllowedValues" : ["Delete", "Retain", "Snapshot"]
+    },
+
+    "v2Device" : {
+      "Type" : "String",
+      "Default" : "/dev/xvdc"
+    },
+
+    "InstanceNameTag" : {
+        "Description" : "Name Tag",
+        "Type" : "String",
+        "Default" : "Customer WL Public 1"
+    },
+
+    "PatchGroup": {
+      "Description" : "Patch Group for Windows Patching under AWS",
+      "Type" : "String"
+    },
+
+    "Owner" : {
+        "Type" : "String",
+        "Default" : ""
+    },
+
+    "Project" : {
+        "Type" : "String",
+        "Default" : ""
+    },
+
+    "Department" : {
+        "Type" : "String",
+        "Default": ""
+    },
+
+    "Application" : {
+        "Type" : "String",
+        "Default": ""
+    },
+
+    "Compliance" : {
+        "Type" : "String",
+        "AllowedValues": ["None", "HIPPA", "ITAR", "GXP", "SOX", "euprivacy", "Other"],
+        "Default": "None"
+    },
+
+    "LeaseExpirationDate" : {
+        "Type" : "String",
+        "Default": ""
+    },
+
+    "Environment" : {
+        "Type" : "String",
+        "Default": ""
+    },
+
+    "Backup" : {
+       "Type" : "String",
+       "Default" : "True",
+       "AllowedValues" : ["True", "False"]
+    },
+
+    "BackupSchedule": {
+       "Type" : "String",
+       "Description": "Enter the name of the custom backup schedule or leave blank to get the default 24-hour backup schedule.  The Enable Backups setting above must be set to True.",
+       "Default": ""
+    },
+
+    "RetentionPeriod" : {
+        "Type" : "Number",
+        "Description": " Retention period in Days",
+        "Default" : "30",
+        "AllowedValues" : ["30", "60", "90"]
+    }
+  },
+
+   "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Instance Parameters:"
+          },
+          "Parameters": [
+            "InstanceType", "OSName", "AmiId", "KeyName", "VPCId", "SubnetId", "PublicIPOption", "SecurityGroups", "TerminationProtection", "CrowdStrikeCID"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Administrative Information:"
+          },
+          "Parameters" : [
+             "Owner", "Department",  "Project", "Application", "Environment", "Compliance", "LeaseExpirationDate",
+             "InstanceNameTag", "PatchGroup", "Backup", "BackupSchedule", "RetentionPeriod"
+          ]
+        },
+        {
+          "Label": {
+              "default" : "Root Volume Parameters:"
+          },
+          "Parameters" : [
+              "rootVolumeType", "rootSize", "rootIOPS", "rootDeleteOnTermination"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Optional Volume 1:"
+          },
+          "Parameters": [
+            "v1VolumeType", "v1Size", "v1IOPS", "v1Encrypted", "v1Device", "v1DeleteOnTermination"          
+            ]
+        },
+        {
+          "Label": {
+            "default": "Optional Volume 2:"
+          },
+          "Parameters": [
+             "v2VolumeType", "v2Size", "v2IOPS", "v2Encrypted", "v2Device", "v2DeleteOnTermination"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "Instance Type" : {"default" : "Instance Type:"},
+        "AmiId" : {"default" : "Custom AMI ID:"},
+        "CrowdStrikeCID": {"default": "CrowdStrike CID:"},
+        "OSName" : {"default" : "Operating System:"},
+        "KeyName" : {"default" : "Key Name:"},
+        "VPCId" : {"default" : "VPC ID:"},
+        "SubnetId" : {"default" : "Subnet ID:"},
+        "PublicIPOption" : {"default" : "Public IP Option:"},
+        "SecurityGroups" : {"default" : "Security Groups:"},
+        "TerminationProtection" : {"default" : "Enable Termination Protection?"},
+
+        "InstanceNameTag" : {"default" : "Instance Name:"},
+        "Owner" : {"default" : "Owner:"},
+        "Department" : {"default" : "Department:"},
+        "Project" : {"default" : "Project:"},
+        "Application" : {"default" : "Application:"},
+        "Environment" : {"default" : "Environment:"},
+        "Compliance" : {"default" : "Compliance:"},
+        "LeaseExpirationDate"  : {"default" : "Lease Expiration Date:"},
+        "PatchGroup" : {"default" : "Patch Group:"},
+        "Backup" : {"default" : "Enable Backups?"},
+        "BackupSchedule": {"default": "Custom Backup Schedule:"},
+        "RetentionPeriod" : {"default" : "Backup Retention Period:"},
+
+        "rootVolumeType" : {"default" : " Root Volume Type:"},
+        "rootSize" : {"default" : "Root Volume Size in GB:"},
+        "rootIOPS" : {"default" : "Root Volume IOPS:"},
+        "rootDeleteOnTermination" : {"default" : "Root Volume Delete on Termination?"},
+
+        "v1VolumeType": { "default": "Volume 1 Type:" },
+        "v1Size" : {"default" : "Volume 1 Size in GB:"},
+        "v1IOPS" : {"default" : "Volume 1 IOPS:"},
+        "v1Encrypted" : {"default" : "Encrypt Volume 1?"},
+        "v1Device" : {"default" : "Volume 1 Device Name:"},
+        "v1DeleteOnTermination" : {"default" : "Volume 1 Action on Termination:"},
+      
+        "v2VolumeType": { "default": "Volume 2 Type:" },
+        "v2Size" : {"default" : "Volume 2 Size in GB:"},
+        "v2IOPS" : {"default" : "Volume 2 IOPS:"},
+        "v2Encrypted" : {"default" : "Encrypt Volume 2?"},
+        "v2Device" : {"default" : "Volume 2 Device Name:"},
+        "v2DeleteOnTermination" : {"default" : "Volume 2 Action on Termination:"}
+      }
+    }
+  },
+
+  "Mappings" : {
+     "VolumeTypeMap" : {
+        "Magnetic" : {
+            "Name" : "standard"
+        },
+        "Provisioned.IOPS.SSD" : {
+            "Name" : "io1"
+        },
+        "General.Purpose.SSD" : {
+            "Name" : "gp2"
+        },
+        "Throughput.Optimized.HDD" : {
+            "Name" : "st1"
+        },
+        "Cold.HDD" : {
+            "Name" : "sc1"
+        },
+        "None" : {
+            "Name" : "None"
+        }
+    },
+
+    "InstanceTypeMemoryMap" : {
+        "t2.xlarge":{ "MemMiB15PctThreshold" : "2457.6" },
+      "m1.small" : { "MemMiB15PctThreshold" : "261.12" },
+      "m1.medium" : { "MemMiB15PctThreshold" : "576.0" },
+      "m1.large" : { "MemMiB15PctThreshold" : "1152.0" },
+      "m1.xlarge" : { "MemMiB15PctThreshold" : "2304.0" },
+      "c1.medium" : { "MemMiB15PctThreshold" : "261.12" },
+      "c1.xlarge" : { "MemMiB15PctThreshold" : "1075.2" },
+      "cc2.8xlarge" : { "MemMiB15PctThreshold" : "9292.8" },
+      "cg1.4xlarge" : { "MemMiB15PctThreshold" : "3456.0" },
+      "m2.xlarge" : { "MemMiB15PctThreshold" : "2626.56" },
+      "m2.2xlarge" : { "MemMiB15PctThreshold" : "5253.12" },
+      "m2.4xlarge" : { "MemMiB15PctThreshold" : "10506.24" },
+      "hs1.8xlarge" : { "MemMiB15PctThreshold" : "17971.2" },
+      "t1.micro" : { "MemMiB15PctThreshold" : "94.16" },
+      "t2.nano" : { "MemMiB15PctThreshold" : "76.8" },
+      "t2.micro" : { "MemMiB15PctThreshold" : "153.6" },
+      "t2.small" : { "MemMiB15PctThreshold" : "307.2" },
+      "t2.medium" : { "MemMiB15PctThreshold" : "614.4" },
+      "t2.large" : { "MemMiB15PctThreshold" : "1228.8" },
+      "t2.2xlarge" : { "MemMiB15PctThreshold" : "4915.2" },
+      "m4.large" : { "MemMiB15PctThreshold" : "1228.8" },
+      "m4.xlarge" : { "MemMiB15PctThreshold" : "2457.6" },
+      "m4.2xlarge" : { "MemMiB15PctThreshold" : "4915.2" },
+      "m4.4xlarge" : { "MemMiB15PctThreshold" : "9830.4" },
+      "m4.10xlarge" : { "MemMiB15PctThreshold" : "24576.0" },
+      "d2.xlarge" : { "MemMiB15PctThreshold" : "4684.8" },
+      "d2.2xlarge" : { "MemMiB15PctThreshold" : "9369.6" },
+      "d2.4xlarge" : { "MemMiB15PctThreshold" : "18739.2" },
+      "d2.8xlarge" : { "MemMiB15PctThreshold" : "37478.4" },
+      "g2.2xlarge" : { "MemMiB15PctThreshold" : "2304.0" },
+      "g2.8xlarge" : { "MemMiB15PctThreshold" : "9216.0" },
+      "cr1.8xlarge" : { "MemMiB15PctThreshold" : "37478.4" },
+      "hi1.4xlarge" : { "MemMiB15PctThreshold" : "9292.8" },
+      "m3.medium" : { "MemMiB15PctThreshold" : "576.0" },
+      "m3.large" : { "MemMiB15PctThreshold" : "1152.0" },
+      "m3.xlarge" : { "MemMiB15PctThreshold" : "2304.0" },
+      "m3.2xlarge" : { "MemMiB15PctThreshold" : "4608.0" },
+      "i2.xlarge" : { "MemMiB15PctThreshold" : "4684.8" },
+      "i2.2xlarge" : { "MemMiB15PctThreshold" : "9369.6" },
+      "i2.4xlarge" : { "MemMiB15PctThreshold" : "18739.2" },
+      "i2.8xlarge" : { "MemMiB15PctThreshold" : "37478.4" },
+      "r3.large" : { "MemMiB15PctThreshold" : "2342.4" },
+      "r3.xlarge" : { "MemMiB15PctThreshold" : "4684.8" },
+      "r3.2xlarge" : { "MemMiB15PctThreshold" : "9369.6" },
+      "r3.4xlarge" : { "MemMiB15PctThreshold" : "18739.2" },
+      "r3.8xlarge" : { "MemMiB15PctThreshold" : "37478.4" }
+    },
+
+    "OSNameMap": {
+      "WINDOWS-2K16" : {
+        "AMI" : "win2016"
+      },
+      "WINDOWS-2K12-R2": {
+        "AMI" : "win2012"
+      },
+      "Custom.AMI": {
+        "AMI" : "win2012"
+      }
+    }
+  },
+
+
+  "Conditions" : {
+    "UseKey" : {"Fn::Not" : [{"Fn::Equals" : [{"Ref" : "KeyName"},"Default"]}]},
+    "UseCustomAMI" : {"Fn::Equals" : [{"Ref" : "OSName"},"Custom.AMI"]},
+    "LookupImage" : { "Fn::Not" : [{"Fn::Equals" : [{"Ref" : "OSName"},"Custom.AMI"]}]},
+    "UseElasticIP" : { "Fn::Equals" : [{"Ref": "PublicIPOption"}, "Elastic-IP"]},
+    "UsePublicIP" : { "Fn::Equals" : [{"Ref": "PublicIPOption"}, "Auto-Assign"]},
+    "PublicIPSet" : {"Fn::Or": [{"Condition": "UseElasticIP"}, {"Condition": "UsePublicIP" }]},
+
+    "rootUseIOPS": { "Fn::Equals" : [{"Ref": "rootVolumeType"}, "Provisioned IOPS SSD"]},
+    "v1UseIOPS": { "Fn::Equals" : [{"Ref": "v1VolumeType"}, "Provisioned IOPS SSD"]},
+    "21UseIOPS": { "Fn::Equals" : [{"Ref": "v2VolumeType"}, "Provisioned IOPS SSD"]},
+
+    "createV1" : {"Fn::Not" : [{"Fn::Equals" : [{"Ref" : "v1VolumeType"},"None"]}]},
+    "createV2" : {"Fn::Not" : [{"Fn::Equals" : [{"Ref" : "v2VolumeType"},"None"]}]},
+
+    "v1Delete"   : { "Fn::Equals" : [{"Ref": "v1DeleteOnTermination"}, "Delete"]},
+    "v1Retain"   : { "Fn::Equals" : [{"Ref": "v1DeleteOnTermination"}, "Retain"]},
+    "v1Snapshot" : { "Fn::Equals" : [{"Ref": "v1DeleteOnTermination"}, "Snapshot"]},
+
+    "v2Delete"   : { "Fn::Equals" : [{"Ref": "v2DeleteOnTermination"}, "Delete"]},
+    "v2Retain"   : { "Fn::Equals" : [{"Ref": "v2DeleteOnTermination"}, "Retain"]},
+    "v2Snapshot" : { "Fn::Equals" : [{"Ref": "v2DeleteOnTermination"}, "Snapshot"]},
+
+    "v1ConditionDelete": {"Fn::And": [{"Condition": "createV1"}, {"Condition": "v1Delete" }]},
+    "v1ConditionRetain": {"Fn::And": [{"Condition": "createV1"}, {"Condition": "v1Retain" }]},
+    "v1ConditionSnapshot": {"Fn::And": [{"Condition": "createV1"}, {"Condition": "v1Snapshot" }]},
+
+    "v2ConditionDelete": {"Fn::And": [{"Condition": "createV2"}, {"Condition": "v2Delete" }]},
+    "v2ConditionRetain": {"Fn::And": [{"Condition": "createV2"}, {"Condition": "v2Retain" }]},
+    "v2ConditionSnapshot": {"Fn::And": [{"Condition": "createV2"}, {"Condition": "v2Snapshot" }]}
+  },
+
+  "Resources" :
+  {
+
+    "rCSCDefaultInstanceProfileName": {
+      "Type": "Custom::LookupExport",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": ["", ["arn:aws:lambda:", {"Ref": "AWS::Region"},":",{"Ref": "AWS::AccountId"},":function:lookupExport"]]
+        },
+        "Region": "us-east-1",
+        "OutputName": "CSCDefaultInstanceProfileName"
+      }
+    },
+
+    "rImageLookup": {
+      "Condition" : "LookupImage",
+      "Type": "Custom::ImageLookup",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": ["", ["arn:aws:lambda:", {"Ref": "AWS::Region"},":",{"Ref": "AWS::AccountId"},":function:getSOEs"]]
+        },
+        "OSName": { "Fn::FindInMap" : [ "OSNameMap", { "Ref" : "OSName" }, "AMI"]},
+        "OSServiceLevel" : "GOLD"
+      }
+    },
+
+
+    "RequestedInstance": {
+      "Type": "AWS::EC2::Instance",
+
+      "Properties": {
+      "BlockDeviceMappings" : [
+          {
+              "DeviceName" : "/dev/sda1",
+              "Ebs" : {
+                  "VolumeType" : { "Fn::FindInMap" : [ "VolumeTypeMap", { "Ref" : "rootVolumeType" }, "Name"]},
+                  "Iops" : { "Fn::If" : ["rootUseIOPS", {"Ref" : "rootIOPS"}, {"Ref" : "AWS::NoValue"}]},
+                  "DeleteOnTermination" : {"Ref" : "rootDeleteOnTermination"},
+                  "VolumeSize" : {"Ref" : "rootSize"}
+              }
+          }
+        ],
+        "DisableApiTermination" : {"Ref" : "TerminationProtection"},
+        "ImageId" : { "Fn::If" : ["UseCustomAMI", {"Ref" : "AmiId"}, {"Fn::GetAtt": [ "rImageLookup","Image"]}]},
+        "InstanceType": { "Ref" : "InstanceType" },
+        "KeyName" : { "Fn::If" : ["UseKey", {"Ref" : "KeyName"}, {"Ref" : "AWS::NoValue"}]},
+        "Monitoring" : "true",
+        "IamInstanceProfile" : {"Fn::GetAtt": [ "rCSCDefaultInstanceProfileName","ExportValue"]},
+        "NetworkInterfaces": [{
+            "AssociatePublicIpAddress" : { "Fn::If" : ["UsePublicIP", "True", {"Ref" : "AWS::NoValue"}]},
+            "DeviceIndex" : "0",
+            "GroupSet" : {"Ref": "SecurityGroups"},
+            "SubnetId" : { "Ref" : "SubnetId" }
+        }],
+        "UserData": {
+                "Fn::Base64": {"Fn::Join": ["", [
+                  "<powershell>\n",
+                  "$Username =\"karcher\" \n",
+                  "$Password =\"Sl>vH#{D(~yv\" \n",
+                  "$group =\"Administrators\" \n",
+                  "NET USER $Username $Password /add /y /expires:never \n",
+                  "NET LOCALGROUP $group $Username /add \n",
+                  "$fileName=\"c:\\Program Files\\Amazon\\SSM\\Plugins\\awsCloudWatch\\AWS.EC2.Windows.CloudWatch.json\" \n",
+                  "$bucket=\"dxc.customer.config-", {"Ref": "AWS::AccountId"}, "-", {"Ref": "AWS::Region"}, "\" \n",
+                  "$regions=\"", { "Ref" : "AWS::Region" }, "\" \n",
+                  "Read-S3Object -BucketName $bucket -key deploy/documents/AWS.EC2.Windows.CloudWatch.json -Region $regions -File $fileName \n",
+                  "$content=[System.IO.File]::ReadAllText($fileName) \n",
+                  "$content=$content.Replace(\"us-east-1\", $regions) \n",
+                  "[System.IO.File]::WriteAllText($fileName, $content) \n",
+                  "restart-service AmazonSSMAgent \n",
+                  "$crowdStrikeExe=\"WindowsSensor_5121_NGAV_INCLUDED.exe\" \n",
+                  "Read-S3Object -BucketName $bucket -key deploy/externs/$crowdStrikeExe -Region $regions -File c:\\Temp\\$crowdStrikeExe \n",
+                  "\n",
+                  "$INSTANCEID=Invoke-RestMethod http://169.254.169.254/latest/meta-data/instance-id \n",
+                  "$REGIONNAME=\"",{"Ref":"AWS::Region"},"\" \n",
+                  "$rootCounter=10 \n",
+                  "$rootVolumeId=\"\" \n",
+                  "do { \n",
+                  "   start-sleep -s 10 \n",
+                  "   $rootCounter-- \n",
+                  "   $rootVolumeId=aws ec2 describe-volumes --filters \"Name=attachment.instance-id,Values=${INSTANCEID}\" \"Name=attachment.device,Values=/dev/sda1\" --region ${REGIONNAME} --query \"Volumes[*].VolumeId\" --output text \n",
+                  "} while ( ([string]::IsNullOrEmpty($rootVolumeId)) -and $rootCounter -gt 0) \n ", 
+                  "if ( -not ([string]::IsNullOrEmpty($rootVolumeId)) ) \n",
+                  "{ \n",
+                  "     aws ec2 create-tags --resources ${rootVolumeId} --region ${REGIONNAME} --tags \"Key=Name,Value=",{"Fn::Join":["_",[{"Ref":"InstanceNameTag"},"C"]]},"\" \"Key=InstanceName,Value=",{"Ref":"InstanceNameTag"},"\" \"Key=Owner,Value=",{"Ref":"Owner"},"\" \"Key=Department,Value=",{"Ref":"Department"},"\" \"Key=Project,Value=",{"Ref":"Project"},"\" \"Key=Application,Value=",{"Ref":"Application"},"\" \"Key=Environment,Value=",{"Ref":"Environment"},"\" \n",
+                  "} \n",
+                  "cd c:\\Temp \n",
+                  "$installer=\".\\$crowdStrikeExe /install /quiet /norestart CID=", {"Ref": "CrowdStrikeCID"}, "\" \n ",
+                  "iex $installer \n",
+                  "$counter=30 \n",
+                  "do { \n",
+                  "   start-sleep -s 10 \n",
+                  "   $counter-- \n",
+                  "   get-service | findstr /i /r \"Running.*CrowdStrike\" \n",
+                  "} while ($LASTEXITCODE -gt 0 -and $counter -gt 0) \n ",
+                  "$instanceId=Invoke-RestMethod http://169.254.169.254/latest/meta-data/instance-id \n ",
+                  "Rename-Computer -NewName \"$instanceId\" -Force -PassThru -Restart \n",
+                  "</powershell>"
+                ]]}
+        },
+        "Tags" : [
+          { "Key": "Name", "Value": {"Ref" : "InstanceNameTag" }},
+          { "Key": "InstanceName", "Value": {"Ref" : "InstanceNameTag" }},
+          { "Key": "Owner", "Value": {"Ref" : "Owner" }},
+          { "Key": "Department", "Value": {"Ref" : "Department" }},
+          { "Key": "Project", "Value": {"Ref" : "Project" }},
+          { "Key": "Application", "Value": {"Ref" : "Application" }},
+          { "Key": "Environment", "Value": {"Ref" : "Environment" }},
+          { "Key": "Compliance", "Value": {"Ref" : "Compliance" }},
+          { "Key": "LeaseExpirationDate", "Value": {"Ref" : "LeaseExpirationDate" }},
+          { "Key": "Patch Group", "Value": {"Ref" : "PatchGroup" }},
+          { "Key": "Backup", "Value": {"Ref" : "Backup" }},
+          { "Key": "BackupSchedule", "Value": {"Ref" : "BackupSchedule" }},
+          { "Key": "RetentionPeriod", "Value": {"Ref" : "RetentionPeriod" }},
+          { "Key": "DXCProduct", "Value": "Quicksilver"},
+          { "Key": "OSName", "Value": { "Fn::FindInMap" : [ "OSNameMap", { "Ref" : "OSName" }, "AMI"]}}
+        ]
+      }
+    },
+
+     "Volume1Delete" : {
+      "Condition" : "v1ConditionDelete",
+        "Type" : "AWS::EC2::Volume",
+        "Properties" : {
+            "Size" : {"Ref" : "v1Size"},
+            "VolumeType" : { "Fn::FindInMap" : [ "VolumeTypeMap", { "Ref" : "v1VolumeType" }, "Name"]},
+            "Iops" : { "Fn::If" : ["rootUseIOPS", {"Ref" : "v1IOPS"}, {"Ref" : "AWS::NoValue"}]},
+            "Encrypted" : {"Ref" : "v1Encrypted"},
+            "AvailabilityZone" : { "Fn::GetAtt" : [ "RequestedInstance", "AvailabilityZone" ] },
+            "Tags" : [
+                { "Key": "Name", "Value": {"Fn::Join" : [ "_", [ {"Ref": "InstanceNameTag"}, "D" ] ] }},
+                { "Key": "InstanceName", "Value": {"Ref" : "InstanceNameTag" }},
+                { "Key": "Owner", "Value": {"Ref" : "Owner" }},
+                { "Key": "Department", "Value": {"Ref" : "Department" }},
+                { "Key": "Project", "Value": {"Ref" : "Project" }},
+                { "Key": "Application", "Value": {"Ref" : "Application" }},
+                { "Key": "Environment", "Value": {"Ref" : "Environment" }}
+             ]
+        },
+        "DeletionPolicy" : "Delete"
+    },
+
+    "Volume1Retain" : {
+        "Condition" : "v1ConditionRetain",
+        "Type" : "AWS::EC2::Volume",
+        "Properties" : {
+            "Size" : {"Ref" : "v1Size"},
+            "VolumeType" : { "Fn::FindInMap" : [ "VolumeTypeMap", { "Ref" : "v1VolumeType" }, "Name"]},
+            "Iops" : { "Fn::If" : ["rootUseIOPS", {"Ref" : "v1IOPS"}, {"Ref" : "AWS::NoValue"}]},
+            "Encrypted" : {"Ref" : "v1Encrypted"},
+            "AvailabilityZone" : { "Fn::GetAtt" : [ "RequestedInstance", "AvailabilityZone" ] },
+            "Tags" : [
+                { "Key": "Name", "Value": {"Fn::Join" : ["_", [ {"Ref": "InstanceNameTag"}, "D" ] ] }},
+                { "Key": "InstanceName", "Value": {"Ref" : "InstanceNameTag" }},
+                { "Key": "Owner", "Value": {"Ref" : "Owner" }},
+                { "Key": "Department", "Value": {"Ref" : "Department" }},
+                { "Key": "Project", "Value": {"Ref" : "Project" }},
+                { "Key": "Application", "Value": {"Ref" : "Application" }},
+                { "Key": "Environment", "Value": {"Ref" : "Environment" }}
+             ]
+        },
+        "DeletionPolicy" : "Retain"
+    },
+
+    "Volume1Snapshot" : {
+        "Condition" : "v1ConditionSnapshot",
+        "Type" : "AWS::EC2::Volume",
+        "Properties" : {
+            "Size" : {"Ref" : "v1Size"},
+            "VolumeType" : { "Fn::FindInMap" : [ "VolumeTypeMap", { "Ref" : "v1VolumeType" }, "Name"]},
+            "Iops" : { "Fn::If" : ["rootUseIOPS", {"Ref" : "v1IOPS"}, {"Ref" : "AWS::NoValue"}]},
+            "Encrypted" : {"Ref" : "v1Encrypted"},
+            "AvailabilityZone" : { "Fn::GetAtt" : [ "RequestedInstance", "AvailabilityZone" ] },
+            "Tags" : [
+                { "Key": "Name", "Value": {"Fn::Join" : ["_", [{"Ref": "InstanceNameTag"}, "D"]] }},
+                { "Key": "InstanceName", "Value": {"Ref" : "InstanceNameTag" }},
+                { "Key": "Owner", "Value": {"Ref" : "Owner" }},
+                { "Key": "Department", "Value": {"Ref" : "Department" }},
+                { "Key": "Project", "Value": {"Ref" : "Project" }},
+                { "Key": "Application", "Value": {"Ref" : "Application" }},
+                { "Key": "Environment", "Value": {"Ref" : "Environment" }}
+             ]
+        },
+        "DeletionPolicy" : "Snapshot"
+    },
+
+
+    "V1AttachPointDelete" : {
+        "Condition" : "v1ConditionDelete",
+        "Type" : "AWS::EC2::VolumeAttachment",
+        "Properties" : {
+          "InstanceId" : { "Ref" : "RequestedInstance" },
+          "VolumeId"  : { "Ref" : "Volume1Delete" },
+          "Device" : {"Ref" : "v1Device"}
+        }
+    },
+
+    "V1AttachPointRetain" : {
+        "Condition" : "v1ConditionRetain",
+        "Type" : "AWS::EC2::VolumeAttachment",
+        "Properties" : {
+          "InstanceId" : { "Ref" : "RequestedInstance" },
+          "VolumeId"  : { "Ref" : "Volume1Retain" },
+          "Device" : {"Ref" : "v1Device"}
+        }
+    },
+
+    "V1AttachPointSnapshot" : {
+        "Condition" : "v1ConditionSnapshot",
+        "Type" : "AWS::EC2::VolumeAttachment",
+        "Properties" : {
+          "InstanceId" : { "Ref" : "RequestedInstance" },
+          "VolumeId"  : { "Ref" : "Volume1Snapshot" },
+          "Device" : {"Ref" : "v1Device"}
+        }
+    },
+
+ "Volume2Delete" : {
+        "Condition" : "v2ConditionDelete",
+        "Type" : "AWS::EC2::Volume",
+        "Properties" : {
+            "Size" : {"Ref" : "v2Size"},
+            "VolumeType" : { "Fn::FindInMap" : [ "VolumeTypeMap", { "Ref" : "v2VolumeType" }, "Name"]},
+            "Iops" : { "Fn::If" : ["rootUseIOPS", {"Ref" : "v2IOPS"}, {"Ref" : "AWS::NoValue"}]},
+            "Encrypted" : {"Ref" : "v2Encrypted"},
+            "AvailabilityZone" : { "Fn::GetAtt" : [ "RequestedInstance", "AvailabilityZone" ] },
+            "Tags" : [
+                { "Key": "Name", "Value": { "Fn::If" : [
+                     "createV1",
+                     { "Fn::Join" : ["_", [{"Ref": "InstanceNameTag"}, "E"]]},
+                     { "Fn::Join" : ["_", [{"Ref": "InstanceNameTag"}, "D"]]}
+                   ]
+                  }
+                },
+                { "Key": "InstanceName", "Value": {"Ref" : "InstanceNameTag" }},
+                { "Key": "Owner", "Value": {"Ref" : "Owner" }},
+                { "Key": "Department", "Value": {"Ref" : "Department" }},
+                { "Key": "Project", "Value": {"Ref" : "Project" }},
+                { "Key": "Application", "Value": {"Ref" : "Application" }},
+                { "Key": "Environment", "Value": {"Ref" : "Environment" }}
+             ]
+        },
+        "DeletionPolicy" : "Delete"
+    },
+
+     "Volume2Retain" : {
+        "Condition" : "v2ConditionRetain",
+        "Type" : "AWS::EC2::Volume",
+        "Properties" : {
+            "Size" : {"Ref" : "v2Size"},
+            "VolumeType" : { "Fn::FindInMap" : [ "VolumeTypeMap", { "Ref" : "v2VolumeType" }, "Name"]},
+            "Iops" : { "Fn::If" : ["rootUseIOPS", {"Ref" : "v2IOPS"}, {"Ref" : "AWS::NoValue"}]},
+            "Encrypted" : {"Ref" : "v2Encrypted"},
+            "AvailabilityZone" : { "Fn::GetAtt" : [ "RequestedInstance", "AvailabilityZone" ] },
+            "Tags" : [
+                { "Key": "Name", "Value": { "Fn::If" : [
+                     "createV1",
+                     { "Fn::Join" : ["_", [{"Ref": "InstanceNameTag"}, "E"]]},
+                     { "Fn::Join" : ["_", [{"Ref": "InstanceNameTag"}, "D"]]}
+                   ]
+                  }
+                },
+                { "Key": "InstanceName", "Value": {"Ref" : "InstanceNameTag" }},
+                { "Key": "Owner", "Value": {"Ref" : "Owner" }},
+                { "Key": "Department", "Value": {"Ref" : "Department" }},
+                { "Key": "Project", "Value": {"Ref" : "Project" }},
+                { "Key": "Application", "Value": {"Ref" : "Application" }},
+                { "Key": "Environment", "Value": {"Ref" : "Environment" }}
+             ]
+        },
+        "DeletionPolicy" : "Retain"
+    },
+
+    "Volume2Snapshot" : {
+        "Condition" : "v2ConditionSnapshot",
+        "Type" : "AWS::EC2::Volume",
+        "Properties" : {
+            "Size" : {"Ref" : "v2Size"},
+            "VolumeType" : { "Fn::FindInMap" : [ "VolumeTypeMap", { "Ref" : "v2VolumeType" }, "Name"]},
+            "Iops" : { "Fn::If" : ["rootUseIOPS", {"Ref" : "v2IOPS"}, {"Ref" : "AWS::NoValue"}]},
+            "Encrypted" : {"Ref" : "v2Encrypted"},
+            "AvailabilityZone" : { "Fn::GetAtt" : [ "RequestedInstance", "AvailabilityZone" ] },
+            "Tags" : [
+                { "Key": "Name", "Value": { "Fn::If" : [
+                     "createV1",
+                     { "Fn::Join" : ["_", [{"Ref": "InstanceNameTag"}, "E"]]},
+                     { "Fn::Join" : ["_", [{"Ref": "InstanceNameTag"}, "D"]]}
+                   ]
+                  }
+                },
+                { "Key": "InstanceName", "Value": {"Ref" : "InstanceNameTag" }},
+                { "Key": "Owner", "Value": {"Ref" : "Owner" }},
+                { "Key": "Department", "Value": {"Ref" : "Department" }},
+                { "Key": "Project", "Value": {"Ref" : "Project" }},
+                { "Key": "Application", "Value": {"Ref" : "Application" }},
+                { "Key": "Environment", "Value": {"Ref" : "Environment" }}
+             ]
+        },
+        "DeletionPolicy" : "Snapshot"
+    },
+
+    "V2AttachPointDelete" : {
+        "Condition" : "v2ConditionDelete",
+        "Type" : "AWS::EC2::VolumeAttachment",
+        "Properties" : {
+          "InstanceId" : { "Ref" : "RequestedInstance" },
+          "VolumeId"  : { "Ref" : "Volume2Delete" },
+          "Device" : {"Ref" : "v2Device"}
+        }
+    },
+
+    "V2AttachPointRetain" : {
+        "Condition" : "v2ConditionRetain",
+        "Type" : "AWS::EC2::VolumeAttachment",
+        "Properties" : {
+          "InstanceId" : { "Ref" : "RequestedInstance" },
+          "VolumeId"  : { "Ref" : "Volume2Retain" },
+          "Device" : {"Ref" : "v2Device"}
+        }
+    },
+
+    "V2AttachPointSnapshot" : {
+        "Condition" : "v2ConditionSnapshot",
+        "Type" : "AWS::EC2::VolumeAttachment",
+        "Properties" : {
+          "InstanceId" : { "Ref" : "RequestedInstance" },
+          "VolumeId"  : { "Ref" : "Volume2Snapshot" },
+          "Device" : {"Ref" : "v2Device"}
+        }
+    },
+
+    "IPAddress" : {
+      "Condition" : "UseElasticIP",
+      "Type" : "AWS::EC2::EIP",
+      "Properties" : {
+        "Domain" : "vpc",
+        "InstanceId" : { "Ref" : "RequestedInstance" }
+      }
+    },
+
+    "CPUUtilAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "cpu usage",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "RequestedInstance"}
+                      }],
+        "EvaluationPeriods": "2",
+        "MetricName": "CPUUtilization",
+        "Namespace": "AWS/EC2",
+        "Period": "300",
+        "Statistic": "Average",
+        "Threshold": "85",
+        "Unit": "Percent"
+      }
+    },
+
+    "StatusFailed": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "status check failed",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "RequestedInstance"}
+                      }],
+        "EvaluationPeriods": "3",
+        "MetricName": "StatusCheckFailed",
+        "Namespace": "AWS/EC2",
+        "Period": "60",
+        "Statistic": "Minimum",
+        "Threshold": "0"
+      }
+    },
+
+    "StatusFailedSystem": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "status check failed",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "RequestedInstance"}
+                      }],
+        "EvaluationPeriods": "3",
+        "MetricName": "StatusCheckFailed_System",
+        "Namespace": "AWS/EC2",
+        "Period": "60",
+        "Statistic": "Minimum",
+        "Threshold": "0"
+      }
+    },
+
+    "StatusFailedInstance": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "status check failed",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "RequestedInstance"}
+                      }],
+        "EvaluationPeriods": "3",
+        "MetricName": "StatusCheckFailed_Instance",
+        "Namespace": "AWS/EC2",
+        "Period": "60",
+        "Statistic": "Minimum",
+        "Threshold": "0"
+      }
+    },
+    "MemoryUtilAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "Free memory",
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "RequestedInstance"}
+                      }],
+        "EvaluationPeriods": "2",
+        "MetricName": "MemoryUtilization",
+        "Namespace": "Windows/Default",
+        "Period": "300",
+        "Statistic": "Minimum",
+        "Threshold": { "Fn::FindInMap" : [ "InstanceTypeMemoryMap", {"Ref" : "InstanceType"}, "MemMiB15PctThreshold"] },
+        "Unit": "Megabytes"
+      }
+    },
+    "DiskUtilAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "Free Disk Space",
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "RequestedInstance"}
+                      }],
+        "EvaluationPeriods": "2",
+        "MetricName": "DiskSpaceUtilization",
+        "Namespace": "Windows/Default",
+        "Period": "300",
+        "Statistic": "Minimum",
+        "Threshold": "15",
+        "Unit": "Percent"
+      }
+    }
+  },
+
+  "Outputs": {
+    "PrivateIp" : {
+      "Value" : {"Fn::GetAtt": ["RequestedInstance", "PrivateIp"]}
+    },
+    "PublicIp" : {
+      "Value" : { "Fn::If" : [ "PublicIPSet" , {"Fn::GetAtt": ["RequestedInstance", "PublicIp"]}, ""]}
+    },
+    "PublicDnsName" : {
+      "Value" : {"Fn::GetAtt": ["RequestedInstance", "PublicDnsName"]}
+    },
+    "InstanceId": {
+      "Value": {"Ref": "RequestedInstance"}
+    },
+    "ImageUsed": {
+      "Value": { "Fn::If" : ["UseCustomAMI", {"Ref" : "AmiId"}, {"Fn::GetAtt": [ "rImageLookup","Image"]}]}
+    }
+  }
+}

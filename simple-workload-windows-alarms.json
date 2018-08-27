@@ -1,0 +1,278 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description": "Creates Alarms And Associates Them With The Passed In Windows Instance (Assumes InstanceId Is Valid And CSCMSInstanceAlarmTopic Has Been Exported By A Template)",
+  "Parameters": {
+    "InstanceId" : {
+        "Type" : "String",
+        "Description": "Id of instance to which we are applying alarms"
+    },
+    "ApplyAlarms" : {
+        "Type" : "String",
+        "Description": "Boolean indicating whether we should apply alarms"
+    },
+    "InstanceType" : {
+        "Type" : "String",
+        "Description": "EC2 instance type"
+    },
+    "v1VolumeType" : {
+        "Type" : "String",
+        "Description": "Type of EBS volume for Volume 1"
+    },
+    "v1FileSystemType" : {
+        "Type" : "String",
+        "Description": "Filesystem type for Volume 1"
+    },
+    "v1Device" : {
+        "Type" : "String",
+        "Description": "Block device associated to Volume 1"
+    },
+    "v1MountPoint" : {
+        "Type" : "String",
+        "Description": "Drive Letter for Volume 1"
+    },
+    "v2VolumeType" : {
+        "Type" : "String",
+        "Description": "Type of EBS volume for Volume 2"
+    },
+    "v2FileSystemType" : {
+        "Type" : "String",
+        "Description": "Filesystem type for Volume 2"
+    },
+    "v2Device" : {
+        "Type" : "String",
+        "Description": "Block device associated to Volume 2"
+    },
+    "v2MountPoint" : {
+        "Type" : "String",
+        "Description": "Drive Letter for Volume 2"
+    }
+  },
+
+  "Mappings" : {
+
+    "InstanceTypeMemoryMap" : {
+       "t2.xlarge":{ "MemMiB15PctThreshold" : "2457.6" },
+        "t2.2xlarge" : { "MemMiB15PctThreshold" : "4915.2" },
+      "m1.small" : { "MemMiB15PctThreshold" : "261.12" },
+      "m1.medium" : { "MemMiB15PctThreshold" : "576.0" },
+      "m1.large" : { "MemMiB15PctThreshold" : "1152.0" },
+      "m1.xlarge" : { "MemMiB15PctThreshold" : "2304.0" },
+      "c1.medium" : { "MemMiB15PctThreshold" : "261.12" },
+      "c1.xlarge" : { "MemMiB15PctThreshold" : "1075.2" },
+      "cc2.8xlarge" : { "MemMiB15PctThreshold" : "9292.8" },
+      "cg1.4xlarge" : { "MemMiB15PctThreshold" : "3456.0" },
+      "m2.xlarge" : { "MemMiB15PctThreshold" : "2626.56" },
+      "m2.2xlarge" : { "MemMiB15PctThreshold" : "5253.12" },
+      "m2.4xlarge" : { "MemMiB15PctThreshold" : "10506.24" },
+      "hs1.8xlarge" : { "MemMiB15PctThreshold" : "17971.2" },
+      "t1.micro" : { "MemMiB15PctThreshold" : "94.16" },
+      "t2.nano" : { "MemMiB15PctThreshold" : "76.8" },
+      "t2.micro" : { "MemMiB15PctThreshold" : "153.6" },
+      "t2.small" : { "MemMiB15PctThreshold" : "307.2" },
+      "t2.medium" : { "MemMiB15PctThreshold" : "614.4" },
+      "t2.large" : { "MemMiB15PctThreshold" : "1228.8" },
+      "m4.large" : { "MemMiB15PctThreshold" : "1228.8" },
+      "m4.xlarge" : { "MemMiB15PctThreshold" : "2457.6" },
+      "m4.2xlarge" : { "MemMiB15PctThreshold" : "4915.2" },
+      "m4.4xlarge" : { "MemMiB15PctThreshold" : "9830.4" },
+      "m4.10xlarge" : { "MemMiB15PctThreshold" : "24576.0" },
+      "d2.xlarge" : { "MemMiB15PctThreshold" : "4684.8" },
+      "d2.2xlarge" : { "MemMiB15PctThreshold" : "9369.6" },
+      "d2.4xlarge" : { "MemMiB15PctThreshold" : "18739.2" },
+      "d2.8xlarge" : { "MemMiB15PctThreshold" : "37478.4" },
+      "g2.2xlarge" : { "MemMiB15PctThreshold" : "2304.0" },
+      "g2.8xlarge" : { "MemMiB15PctThreshold" : "9216.0" },
+      "cr1.8xlarge" : { "MemMiB15PctThreshold" : "37478.4" },
+      "hi1.4xlarge" : { "MemMiB15PctThreshold" : "9292.8" },
+      "m3.medium" : { "MemMiB15PctThreshold" : "576.0" },
+      "m3.large" : { "MemMiB15PctThreshold" : "1152.0" },
+      "m3.xlarge" : { "MemMiB15PctThreshold" : "2304.0" },
+      "m3.2xlarge" : { "MemMiB15PctThreshold" : "4608.0" },
+      "i2.xlarge" : { "MemMiB15PctThreshold" : "4684.8" },
+      "i2.2xlarge" : { "MemMiB15PctThreshold" : "9369.6" },
+      "i2.4xlarge" : { "MemMiB15PctThreshold" : "18739.2" },
+      "i2.8xlarge" : { "MemMiB15PctThreshold" : "37478.4" },
+      "r3.large" : { "MemMiB15PctThreshold" : "2342.4" },
+      "r3.xlarge" : { "MemMiB15PctThreshold" : "4684.8" },
+      "r3.2xlarge" : { "MemMiB15PctThreshold" : "9369.6" },
+      "r3.4xlarge" : { "MemMiB15PctThreshold" : "18739.2" },
+      "r3.8xlarge" : { "MemMiB15PctThreshold" : "37478.4" }
+    }
+  },
+
+  "Conditions" : {
+    "ApplyAlarms"   : { "Fn::Equals" : [{"Ref": "ApplyAlarms"}, "true"]},
+    "v1MetricAlarm"   : { "Fn::And" : [
+                           { "Fn::Not" : [ {"Fn::Equals" : [{"Ref": "v1VolumeType"}, "None"]} ] },
+                           { "Fn::Not" : [ {"Fn::Equals" : [{"Ref": "v1FileSystemType"}, "None"]} ] },
+                           { "Condition" : "ApplyAlarms" }
+                         ] 
+     },
+     "v2MetricAlarm"   : { "Fn::And" : [
+                           { "Fn::Not" : [ {"Fn::Equals" : [{"Ref": "v2VolumeType"}, "None"]} ] },
+                           { "Fn::Not" : [ {"Fn::Equals" : [{"Ref": "v2FileSystemType"}, "None"]} ] },
+                           { "Condition" : "ApplyAlarms" }
+                         ] 
+     }
+  },
+
+  "Resources" :
+  {
+    "CPUUtilAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "cpu usage",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "InstanceId"}
+                      }],
+        "EvaluationPeriods": "2",
+        "MetricName": "CPUUtilization",
+        "Namespace": "AWS/EC2",
+        "Period": "300",
+        "Statistic": "Average",
+        "Threshold": "85",
+        "Unit": "Percent"
+      }
+    },
+
+    "StatusFailed": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "status check failed",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "InstanceId"}
+                      }],
+        "EvaluationPeriods": "3",
+        "MetricName": "StatusCheckFailed",
+        "Namespace": "AWS/EC2",
+        "Period": "60",
+        "Statistic": "Minimum",
+        "Threshold": "0"
+      }
+    },
+
+    "StatusFailedSystem": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "status check failed",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "InstanceId"}
+                      }],
+        "EvaluationPeriods": "3",
+        "MetricName": "StatusCheckFailed_System",
+        "Namespace": "AWS/EC2",
+        "Period": "60",
+        "Statistic": "Minimum",
+        "Threshold": "0"
+      }
+    },
+
+    "StatusFailedInstance": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "status check failed",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "InstanceId"}
+                      }],
+        "EvaluationPeriods": "3",
+        "MetricName": "StatusCheckFailed_Instance",
+        "Namespace": "AWS/EC2",
+        "Period": "60",
+        "Statistic": "Minimum",
+        "Threshold": "0"
+      }
+    },
+    "MemoryUtilAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition" : "ApplyAlarms",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "Free memory",
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "InstanceId"}
+                      }],
+        "EvaluationPeriods": "2",
+        "MetricName": "MemoryUtilization",
+        "Namespace": "Windows/Default",
+        "Period": "300",
+        "Statistic": "Minimum",
+        "Threshold": { "Fn::FindInMap" : [ "InstanceTypeMemoryMap", {"Ref" : "InstanceType"}, "MemMiB15PctThreshold"] },
+        "Unit": "Megabytes"
+      }
+    },
+    "DiskUtilAlarmCdrive": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition" : "ApplyAlarms",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": "Free Disk Space",
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "InstanceId"}
+                      }],
+        "EvaluationPeriods": "2",
+        "MetricName": "DiskSpaceUtilization_C",
+        "Namespace": "Windows/Default",
+        "Period": "300",
+        "Statistic": "Minimum",
+        "Threshold": "15",
+        "Unit": "Percent"
+      }
+    },
+    "DiskUtilAlarmDdrive": {
+      "Condition" : "v1MetricAlarm",
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": { "Fn::Join" : [ " ", [ "Free Disk Space for Mountpoint", {"Ref": "v1MountPoint"}, "( Device", {"Ref": "v1Device"}, ")" ]]},
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "InstanceId"}
+                     }],
+        "EvaluationPeriods": "2",
+        "MetricName": "DiskSpaceUtilization_D",
+        "Namespace": "Windows/Default",
+        "Period": "300",
+        "Statistic": "Minimum",
+        "Threshold": "15",
+        "Unit": "Percent"
+      }
+    },
+    "DiskUtilAlarmEdrive": {
+      "Condition" : "v2MetricAlarm",
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Fn::ImportValue" : "CSCMSInstanceAlarmTopic"}],
+        "AlarmDescription": { "Fn::Join" : [ " ", [ "Free Disk Space for Mountpoint", {"Ref": "v2MountPoint"}, "( Device", {"Ref": "v2Device"}, ")" ]]},
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions":[{ "Name": "InstanceId",
+                        "Value": {"Ref" : "InstanceId"}
+                     }],
+        "EvaluationPeriods": "2",
+        "MetricName": "DiskSpaceUtilization_E",
+        "Namespace": "Windows/Default",
+        "Period": "300",
+        "Statistic": "Minimum",
+        "Threshold": "15",
+        "Unit": "Percent"
+      }
+    }
+  }
+}
